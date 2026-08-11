@@ -1,0 +1,626 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Release - Iceberg Rust</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="install.html">Install</a></li><li class="chapter-item expanded "><a href="download.html">Download</a></li><li class="chapter-item expanded "><a href="api.html">API</a></li><li class="chapter-item expanded affix "><li class="part-title">Developer Guide</li><li class="chapter-item expanded "><a href="CONTRIBUTING.html">Contributing</a></li><li class="chapter-item expanded "><a href="release.html" class="active">Release</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference</li><li class="chapter-item expanded "><a href="reference/container-runtimes.html">Container Runtimes</a></li><li class="chapter-item expanded "><a href="reference/setup_gpg.html">Setup GPG key</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Iceberg Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-rust" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/apache/iceberg-rust/edit/main/website/src/release.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements.  See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership.  The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License.  You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+-->
+<p>This document explains how the release process works for Apache Iceberg Rust in accordance with Apache requirements.</p>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
+<p><code>Source Release</code> is the key point which Apache values, and is also necessary for an ASF release.</p>
+<p>Please remember that publishing software has legal consequences.</p>
+<p>This guide complements the foundation-wide policies and guides:</p>
+<ul>
+<li><a href="https://www.apache.org/legal/release-policy.html">Release Policy</a></li>
+<li><a href="https://infra.apache.org/release-distribution">Release Distribution Policy</a></li>
+<li><a href="https://infra.apache.org/release-publishing.html">Release Creation Process</a></li>
+</ul>
+<h2 id="terminology"><a class="header" href="#terminology">Terminology</a></h2>
+<p>In this guide:</p>
+<ul>
+<li><code>iceberg_version</code>: the final Iceberg Rust version, like <code>0.9.1</code>.</li>
+<li><code>rc</code>: the numeric release candidate voting round, like <code>2</code>.</li>
+<li><code>rc_tag</code>: the git tag for a release candidate, like <code>v0.9.1-rc.2</code>.</li>
+<li><code>rc_dist_dir</code>: the ASF dev distribution directory, like <code>apache-iceberg-rust-0.9.1-rc2</code>.</li>
+<li><code>source_archive</code>: the source tarball, like <code>apache-iceberg-rust-0.9.1.tar.gz</code>.</li>
+</ul>
+<p>The RC tag includes <code>rc.&lt;number&gt;</code>. The ASF dev distribution directory uses <code>rc&lt;number&gt;</code>. The source archive name uses only the final version.</p>
+<h2 id="release-manager"><a class="header" href="#release-manager">Release Manager</a></h2>
+<p>The release manager is the person taking ownership of a particular Iceberg Rust release.</p>
+<p>This is usually a committer for the Apache Iceberg project, however the role can be supported by non-committers in the early stages of coordinating a release.
+Where this can be supported by a non-committer, this will be mentioned in the guide.</p>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<div class="warning">
+<p>This section is the requirements for individuals who are new to the role of release manager.</p>
+</div>
+<p>Refer to <a href="reference/setup_gpg.html">Setup GPG Key</a> to make sure the GPG key has been set up.
+The RC creation script requires a local GPG secret key when artifact signing or tag creation is enabled.</p>
+<p>Install the release tooling used by the local scripts:</p>
+<ul>
+<li><code>cargo-deny</code></li>
+<li><code>docker</code></li>
+<li><code>gpg</code></li>
+<li><code>svn</code></li>
+</ul>
+<p>The local release helpers are under <code>dev/release/</code>. They log every step before it runs and after it succeeds. If a step fails, the script prints the failed step and stops.</p>
+<h2 id="start-a-tracking-issue-about-the-next-release"><a class="header" href="#start-a-tracking-issue-about-the-next-release">Start a tracking issue about the next release</a></h2>
+<p>Start a tracking issue on GitHub for the upcoming release to track all tasks that need to be completed.
+You should own this tracking issue and coordinate with the community when to target a new release and what changes need to be included.
+You do not need to be a committer to create and own the tracking issue.</p>
+<p>Title:</p>
+<pre><code>Tracking issues of Iceberg Rust ${iceberg_version} Release
+</code></pre>
+<p>Content:</p>
+<pre><code class="language-markdown">This issue is used to track tasks of the iceberg rust ${iceberg_version} release.
+
+## Tasks
+
+### Blockers
+
+&gt; Blockers are the tasks that must be completed before the release.
+
+### Build Release
+
+#### GitHub Side
+
+- [ ] Draft GitHub release
+- [ ] Bump version in project, update dependencies list, and update changelog
+- [ ] Create and push release candidate tag
+
+#### ASF Side
+
+- [ ] Create ASF source release artifacts
+- [ ] Upload artifacts to the SVN dist repo
+
+### Voting
+
+- [ ] Start VOTE at iceberg community
+
+### Official Release
+
+- [ ] Publish artifacts to SVN RELEASE branch
+- [ ] Change Iceberg Rust Website download link
+- [ ] Publish GitHub release, automatically pushing the Git tag
+- [ ] Send the announcement
+
+For details of each step, please refer to: https://rust.iceberg.apache.org/release
+</code></pre>
+<h2 id="github-side"><a class="header" href="#github-side">GitHub Side</a></h2>
+<p>The following steps should be followed once the release is ready to begin.</p>
+<h3 id="draft-github-release"><a class="header" href="#draft-github-release">Draft GitHub release</a></h3>
+<ul>
+<li><a href="https://github.com/apache/iceberg-rust/releases/new">Draft a new GitHub Release using the GitHub web UI</a>.</li>
+<li>Enter the git tag of this release version, of the form <code>v0.y.z</code>. For example, <code>v0.9.0</code>.
+The tag should not exist at this stage and GitHub will offer to create it when the release is published.</li>
+<li>Make sure the branch target is <code>main</code> for minor release (such as <code>0.9.0</code>), or the minor version branch for a patch release (such as <code>0.9.1</code>).</li>
+<li>Generate the release note by clicking the <code>Generate release notes</code> button.</li>
+<li>Save the draft.</li>
+</ul>
+<h3 id="update-crate-versions-dependencies-list-and-changelog"><a class="header" href="#update-crate-versions-dependencies-list-and-changelog">Update crate versions, dependencies list, and changelog</a></h3>
+<p>The following changes can be made in one pull request.</p>
+<h4 id="bump-crate-versions"><a class="header" href="#bump-crate-versions">Bump crate versions</a></h4>
+<p>Bump all components' version in the project to the new Iceberg Rust version.
+This version is the final version, not the release candidate version.</p>
+<ul>
+<li>Rust core and Python binding: bump version in root <code>Cargo.toml</code> under <code>[workspace.package]</code>.</li>
+</ul>
+<h4 id="update-changelogmd"><a class="header" href="#update-changelogmd">Update CHANGELOG.md</a></h4>
+<p>Use the content of the draft GitHub release to update <code>CHANGELOG.md</code>.
+Since drafting a GitHub release requires <code>content: write</code> GitHub permissions, this step must be owned by a committer.</p>
+<h4 id="update-dependency-lists"><a class="header" href="#update-dependency-lists">Update dependency lists</a></h4>
+<p>Run the following command to update the dependencies list of every package:</p>
+<pre><code class="language-shell">dev/release/dependencies.sh generate
+</code></pre>
+<p>Run the following command to verify the licenses meet the project's policy.</p>
+<pre><code class="language-shell">dev/release/dependencies.sh check
+</code></pre>
+<h4 id="open-pull-request"><a class="header" href="#open-pull-request">Open pull request</a></h4>
+<p>Open a pull request with all three changes.</p>
+<h3 id="create-release-candidate-tag-and-artifacts"><a class="header" href="#create-release-candidate-tag-and-artifacts">Create release candidate tag and artifacts</a></h3>
+<p>After the version bump PR gets merged, check out the exact commit to release and run:</p>
+<pre><code class="language-shell">dev/release/create_rc.sh ${iceberg_version} ${rc}
+</code></pre>
+<p>For example:</p>
+<pre><code class="language-shell">dev/release/create_rc.sh 0.9.1 2
+</code></pre>
+<p>Useful options include:</p>
+<ul>
+<li><code>--release_ref HEAD</code>: git commit-ish to archive and tag.</li>
+<li><code>--dist_dir dist</code>: artifact output root.</li>
+<li><code>--create_rc_tag 1</code>: create the signed annotated RC tag as the final release step.</li>
+<li><code>--check_headers 1</code>: check Apache license headers against the source archive.</li>
+<li><code>--check_deps 1</code>: run dependency license checks before artifact creation.</li>
+<li><code>--sign 1</code>: create and verify the detached GPG signature.</li>
+<li><code>--upload_svn 0</code>: upload RC artifacts to the ASF dev dist SVN repository.</li>
+<li><code>--svn_dist_url https://dist.apache.org/repos/dist/dev/iceberg</code>: SVN directory URL where the RC artifact directory will be uploaded.</li>
+</ul>
+<p>This script creates:</p>
+<ul>
+<li>Local artifact directory: <code>dist/apache-iceberg-rust-${iceberg_version}-rc${rc}/</code></li>
+<li>Source archive: <code>apache-iceberg-rust-${iceberg_version}.tar.gz</code></li>
+<li>Signature: <code>apache-iceberg-rust-${iceberg_version}.tar.gz.asc</code></li>
+<li>SHA-512 checksum: <code>apache-iceberg-rust-${iceberg_version}.tar.gz.sha512</code></li>
+<li>Signed annotated RC tag: <code>v${iceberg_version}-rc.${rc}</code></li>
+</ul>
+<p>The script checks license headers against the generated source archive, not the live Git worktree. If enabled, SVN upload runs after local artifact verification and before RC tag creation. The script creates the signed RC tag as the final release step, then prints a draft VOTE email for <code>dev@iceberg.apache.org</code>.</p>
+<p>To upload artifacts to ASF dev dist as part of RC creation, pass:</p>
+<pre><code class="language-shell">dev/release/create_rc.sh ${iceberg_version} ${rc} --upload_svn 1
+</code></pre>
+<p>The script does not push the RC tag. Review the output, then push the tag manually:</p>
+<pre><code class="language-shell">git push origin &quot;v${iceberg_version}-rc.${rc}&quot;
+</code></pre>
+<p>If an RC has a problem, abandon that RC and increment the RC number.</p>
+<h2 id="asf-side"><a class="header" href="#asf-side">ASF Side</a></h2>
+<p>If any step in the ASF release process fails and requires code changes, abandon that RC and prepare a new RC number.
+Our release page displays ASF releases instead of GitHub Releases.</p>
+<h3 id="verify-the-release-candidate-locally"><a class="header" href="#verify-the-release-candidate-locally">Verify the release candidate locally</a></h3>
+<p>Before uploading artifacts to ASF dev dist, verify the local artifacts:</p>
+<pre><code class="language-shell">dev/release/verify_rc.sh ${iceberg_version} ${rc} --download 0
+</code></pre>
+<p>To skip expensive build steps during a quick local check:</p>
+<pre><code class="language-shell">dev/release/verify_rc.sh ${iceberg_version} ${rc} --download 0 --build 0 --python 0
+</code></pre>
+<h3 id="upload-artifacts-to-the-svn-dist-repo"><a class="header" href="#upload-artifacts-to-the-svn-dist-repo">Upload artifacts to the SVN dist repo</a></h3>
+<p>SVN is required for this step.</p>
+<p>The SVN repository of the dev branch is: <a href="https://dist.apache.org/repos/dist/dev/iceberg/">https://dist.apache.org/repos/dist/dev/iceberg/</a></p>
+<p>First, check out Iceberg to a local directory:</p>
+<pre><code class="language-shell">svn co https://dist.apache.org/repos/dist/dev/iceberg/ /tmp/iceberg-dist-dev
+</code></pre>
+<p>If the artifacts were not uploaded by <code>dev/release/create_rc.sh --upload_svn 1</code>, upload them manually:</p>
+<pre><code class="language-shell">rc_dist_dir=&quot;apache-iceberg-rust-${iceberg_version}-rc${rc}&quot;
+
+mkdir &quot;/tmp/iceberg-dist-dev/${rc_dist_dir}/&quot;
+cp &quot;./dist/${rc_dist_dir}/&quot;* &quot;/tmp/iceberg-dist-dev/${rc_dist_dir}/&quot;
+
+cd /tmp/iceberg-dist-dev/
+svn status
+svn add &quot;${rc_dist_dir}&quot;
+svn commit -m &quot;Prepare Apache Iceberg Rust ${iceberg_version} RC${rc}&quot;
+</code></pre>
+<p>Visit <a href="https://dist.apache.org/repos/dist/dev/iceberg/">https://dist.apache.org/repos/dist/dev/iceberg/</a> to make sure the artifacts are uploaded correctly.</p>
+<h3 id="verify-the-uploaded-release-candidate"><a class="header" href="#verify-the-uploaded-release-candidate">Verify the uploaded release candidate</a></h3>
+<p>After uploading the artifacts, verify them from ASF dev dist:</p>
+<pre><code class="language-shell">dev/release/verify_rc.sh ${iceberg_version} ${rc}
+</code></pre>
+<h3 id="rescue"><a class="header" href="#rescue">Rescue</a></h3>
+<p>If you accidentally publish wrong or unexpected artifacts, like wrong signature files or checksum files, cancel the current RC, increment the RC number, and initiate a new release candidate.
+Remember to delete the wrong artifacts from the SVN dist repo.</p>
+<h2 id="voting"><a class="header" href="#voting">Voting</a></h2>
+<p>Send the Iceberg community VOTE email to <a href="mailto:dev@iceberg.apache.org">dev@iceberg.apache.org</a>.</p>
+<p>Title:</p>
+<pre><code>[VOTE] Release Apache Iceberg Rust ${iceberg_version} RC${rc}
+</code></pre>
+<p>Content:</p>
+<pre><code>Hello Apache Iceberg Rust Community,
+
+This is a call for a vote to release Apache Iceberg Rust version ${iceberg_version}.
+
+The tag to be voted on is: v${iceberg_version}-rc.${rc}.
+
+The release candidate:
+
+https://dist.apache.org/repos/dist/dev/iceberg/apache-iceberg-rust-${iceberg_version}-rc${rc}/
+
+Keys to verify the release candidate:
+
+https://downloads.apache.org/iceberg/KEYS
+
+Git tag for the release:
+
+https://github.com/apache/iceberg-rust/releases/tag/v${iceberg_version}-rc.${rc}
+
+Please download, verify, and test the release candidate.
+
+This vote will be open for at least 72 hours and will remain open until the required number of votes is reached.
+
+Please vote accordingly:
+[ ] +1 Approve
+[ ] +0 No opinion
+[ ] -1 Disapprove (please provide a reason)
+
+To learn more about Apache Iceberg, please visit:
+https://rust.iceberg.apache.org/
+
+Checklist for reference:
+[ ] Download links are valid
+[ ] Checksums and signatures are correct
+[ ] LICENSE and NOTICE files are present
+[ ] No unexpected binary files are included
+[ ] All source files have ASF headers
+[ ] The project builds successfully from source
+[ ] pyiceberg-core builds and tests successfully
+
+For more details, please refer to:
+https://rust.iceberg.apache.org/release.html#how-to-verify-a-release
+
+Thanks,
+${name}
+</code></pre>
+<p>Example: <a href="https://lists.apache.org/thread/c211gqq2yl15jbxqk4rcnq1bdqltjm5l">https://lists.apache.org/thread/c211gqq2yl15jbxqk4rcnq1bdqltjm5l</a></p>
+<p>After at least 3 <code>+1</code> binding votes from Iceberg PMC members, claim the vote result.</p>
+<p>Title:</p>
+<pre><code>[RESULT][VOTE] Release Apache Iceberg Rust ${iceberg_version} RC${rc}
+</code></pre>
+<p>Content:</p>
+<pre><code>Hello Apache Iceberg Rust Community,
+
+The vote to release Apache Iceberg Rust ${iceberg_version} RC${rc} has passed.
+
+The vote PASSED with 3 +1 binding and 1 +1 non-binding votes, no +0 or -1 votes:
+
+Binding votes:
+
+- xxx
+- yyy
+- zzz
+
+Non-Binding votes:
+
+- aaa
+
+Vote thread: ${vote_thread_url}
+
+Thanks,
+${name}
+</code></pre>
+<p>Example: <a href="https://lists.apache.org/thread/xk5myl10mztcfotn59oo59s4ckvojds6">https://lists.apache.org/thread/xk5myl10mztcfotn59oo59s4ckvojds6</a></p>
+<h2 id="how-to-verify-a-release"><a class="header" href="#how-to-verify-a-release">How to verify a release</a></h2>
+<h3 id="validate-with-the-helper-script"><a class="header" href="#validate-with-the-helper-script">Validate with the helper script</a></h3>
+<p>Run:</p>
+<pre><code class="language-shell">dev/release/verify_rc.sh ${iceberg_version} ${rc}
+</code></pre>
+<p>The helper downloads the source archive, signature, and checksum from ASF dev dist, verifies the signature with the local GPG keyring, verifies the checksum, extracts the archive, checks source headers, and runs Rust and Python build/tests.</p>
+<p>To import Apache Iceberg release keys before signature verification, run:</p>
+<pre><code class="language-shell">dev/release/verify_rc.sh ${iceberg_version} ${rc} --import_gpg_keys 1
+</code></pre>
+<h3 id="validate-manually"><a class="header" href="#validate-manually">Validate manually</a></h3>
+<p>A release candidate contains links to following things:</p>
+<ul>
+<li>A source tarball</li>
+<li>A signature (<code>.asc</code>)</li>
+<li>A checksum (<code>.sha512</code>)</li>
+</ul>
+<p>After downloading them, here are the instructions on how to verify them.</p>
+<ul>
+<li>
+<p>Import keys:</p>
+<pre><code class="language-bash">curl https://downloads.apache.org/iceberg/KEYS -o KEYS
+gpg --import KEYS
+</code></pre>
+</li>
+<li>
+<p>Verify the <code>.asc</code> file:</p>
+<pre><code class="language-bash">gpg --verify apache-iceberg-rust-*.tar.gz.asc
+</code></pre>
+<p>Expects: <code>gpg: Good signature from ...</code></p>
+</li>
+<li>
+<p>Verify the checksum:</p>
+<pre><code class="language-bash">shasum -a 512 -c apache-iceberg-rust-*.tar.gz.sha512
+</code></pre>
+<p>Expects: <code>&quot;apache-iceberg-rust-...tar.gz: OK&quot;</code></p>
+</li>
+<li>
+<p>Verify build and test:</p>
+<pre><code class="language-bash">tar -xzf apache-iceberg-rust-*.tar.gz
+cd apache-iceberg-rust-*/
+make build &amp;&amp; make test
+</code></pre>
+</li>
+<li>
+<p>Verify pyiceberg-core build and tests:</p>
+<pre><code class="language-bash">(
+  cd bindings/python
+  make install
+  make test
+)
+</code></pre>
+</li>
+<li>
+<p>Verify license headers:</p>
+<pre><code class="language-bash">docker run --rm -v $(pwd):/github/workspace apache/skywalking-eyes header check
+</code></pre>
+<p>Expects: <code>INFO Totally checked _ files, valid: _, invalid: 0, ignored: _, fixed: 0</code></p>
+</li>
+</ul>
+<h2 id="official-release"><a class="header" href="#official-release">Official Release</a></h2>
+<h3 id="promote-the-rc"><a class="header" href="#promote-the-rc">Promote the RC</a></h3>
+<p>After the VOTE passes, create the final release tag and move the ASF artifacts from dev dist to release dist:</p>
+<pre><code class="language-shell">dev/release/release.sh ${iceberg_version} ${rc}
+</code></pre>
+<p>Useful options include:</p>
+<ul>
+<li><code>--create_release_tag 1</code>: create the signed annotated final release git tag.</li>
+<li><code>--move_svn 1</code>: move the RC artifacts from ASF dev dist to ASF release dist.</li>
+<li><code>--tag_ref &lt;rc tag commit&gt;</code>: git commit-ish to tag as the final release.</li>
+<li><code>--dev_dist_url https://dist.apache.org/repos/dist/dev/iceberg</code>: SVN directory URL containing RC artifact directories.</li>
+<li><code>--release_dist_url https://dist.apache.org/repos/dist/release/iceberg</code>: SVN directory URL where final release artifact directories are published.</li>
+</ul>
+<p>The release script does not push the final release tag.
+Review the output and then move on to the next step to publish the GitHub release and tag.</p>
+<h3 id="publish-the-github-release"><a class="header" href="#publish-the-github-release">Publish the GitHub Release</a></h3>
+<p>A GitHub release should have been drafted earlier in the release process.
+Open the release and publish it now.</p>
+<p>On publish, the Git tag will be created for the release.</p>
+<p>The creation of the final release tag triggers the publish workflow for crates and pyiceberg-core.</p>
+<h3 id="send-the-announcement"><a class="header" href="#send-the-announcement">Send the announcement</a></h3>
+<p>Send the release announcement to <code>dev@iceberg.apache.org</code> and CC <code>announce@apache.org</code>.</p>
+<p>Instead of adding breaking changes, include the new features as &quot;notable changes&quot; in the announcement.</p>
+<p>Title:</p>
+<pre><code>[ANNOUNCE] Release Apache Iceberg Rust ${iceberg_version}
+</code></pre>
+<p>Content:</p>
+<pre><code>Hi all,
+
+The Apache Iceberg Rust community is pleased to announce
+that Apache Iceberg Rust ${iceberg_version} has been released!
+
+Iceberg is a data access layer that allows users to easily and efficiently
+retrieve data from various storage services in a unified way.
+
+The notable changes since the previous release include:
+1. xxxxx
+2. yyyyyy
+3. zzzzzz
+
+Please refer to the change log for the complete list of changes:
+https://github.com/apache/iceberg-rust/releases/tag/v${iceberg_version}
+
+Apache Iceberg Rust website: https://rust.iceberg.apache.org/
+
+Download Links: https://rust.iceberg.apache.org/download
+
+From official ASF distribution: https://dist.apache.org/repos/dist/release/iceberg/apache-iceberg-rust-${iceberg_version}/
+
+Iceberg Resources:
+- Issue: https://github.com/apache/iceberg-rust/issues
+- Mailing list: dev@iceberg.apache.org
+
+Thanks
+On behalf of Apache Iceberg Community
+</code></pre>
+<p>Example: <a href="https://lists.apache.org/thread/oy77n55brvk72tnlb2bjzfs9nz3cfd0s">https://lists.apache.org/thread/oy77n55brvk72tnlb2bjzfs9nz3cfd0s</a></p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="CONTRIBUTING.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="reference/container-runtimes.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="CONTRIBUTING.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="reference/container-runtimes.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
